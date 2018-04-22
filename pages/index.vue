@@ -11,8 +11,9 @@ export default {
   data () {
     return {
       participantIndex: [],
-      leaderboard: [],
+      leaderboard: {},
       firebase: null,
+      lodash: null,
       track: null,
       turf: null,
       map: null,
@@ -21,6 +22,7 @@ export default {
   mounted: function () {
     this.initFirebase()
     this.initMapbox()
+    this.initLodash()
     this.initTurf()
 
     this.setupParticipants()
@@ -31,7 +33,10 @@ export default {
       const json = await response.json()
       return json
     },
-    initTurf: function (){
+    initLodash: function () {
+      this.lodash = require('lodash')
+    },
+    initTurf: function () {
       this.turf = {
         booleanEqual: require('@turf/boolean-equal').default,
         lineSlice: require('@turf/line-slice').default,
@@ -95,23 +100,35 @@ export default {
 
         participantsRef.on('value', function (snapshot) {
           let participantIndex = []
-          let leaderboard = []
+          let leaderboard = {}
 
           snapshot.forEach(function (child) {
             let participant = child.val()
             let payload = participant.payload_fields
-            let coordinates = [payload.longitude || 0, payload.latitude || 0]
+            let coordinates
 
-            payload.name = participant.dev_id
+            if (payload.longitude) {
+              coordinates = [payload.longitude, payload.latitude]
+            } else {
+              if (this.leaderboard[child.key]) {
+                coordinates = this.leaderboard[child.key].geometry.coordinates
+              } else {
+                coordinates = [null, null]
+              }
+            }
 
-            leaderboard.push({
+            leaderboard[child.key] = {
               type: 'Feature',
               geometry: {
                 type: 'Point',
                 coordinates: coordinates
               },
-              properties: payload
-            })
+              properties: {
+                payload: payload,
+                color: '#FF0000',
+                name: participant.dev_id
+              }
+            }
 
             participantIndex.push(child.key)
           }.bind(this))
@@ -123,7 +140,7 @@ export default {
 
           this.map.getSource('participantsSource').setData({
             type: 'FeatureCollection',
-            features: this.leaderboard
+            features: this.lodash.values(this.leaderboard)
           })
         }.bind(this))
 
