@@ -69,15 +69,30 @@ export default {
       })
 
       this.map.on('load', function () {
-        this.map.addSource('participantsSource', {
+        this.map.addSource('participantsSourceYellow', {
+          type: 'geojson',
+          data: null
+        })
+
+        this.map.addSource('participantsSourceBlue', {
           type: 'geojson',
           data: null
         })
 
         this.map.addLayer({
-          id: 'participantsLayer',
+          id: 'participantsLayerYellow',
           type: 'circle',
-          source: 'participantsSource',
+          source: 'participantsSourceYellow',
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#ffc107'
+          }
+        })
+
+        this.map.addLayer({
+          id: 'participantsLayerBlue',
+          type: 'circle',
+          source: 'participantsSourceBlue',
           paint: {
             'circle-radius': 5,
             'circle-color': '#03a9f4'
@@ -105,16 +120,20 @@ export default {
           snapshot.forEach(function (child) {
             let participant = child.val()
             let payload = participant.payload_fields
+            let locationOK = payload.longitude
             let coordinates
+            let color
 
-            if (payload.longitude) {
+            if (locationOK) {
               coordinates = [payload.longitude, payload.latitude]
+              color = 'blue'
             } else {
               if (this.leaderboard[child.key]) {
                 coordinates = this.leaderboard[child.key].geometry.coordinates
               } else {
                 coordinates = [null, null]
               }
+              color = 'yellow'
             }
 
             leaderboard[child.key] = {
@@ -125,7 +144,7 @@ export default {
               },
               properties: {
                 payload: payload,
-                color: '#FF0000',
+                color: color,
                 name: participant.dev_id
               }
             }
@@ -138,9 +157,21 @@ export default {
 
           console.log('setupParticipants', this.participantIndex)
 
-          this.map.getSource('participantsSource').setData({
+          let yellowList = this.lodash.filter(this.leaderboard, function (o) {
+            return o.properties.color === 'yellow'
+          })
+
+          let blueList = this.lodash.filter(this.leaderboard, function (o) {
+            return o.properties.color === 'blue'
+          })
+
+          this.map.getSource('participantsSourceYellow').setData({
             type: 'FeatureCollection',
-            features: this.lodash.values(this.leaderboard)
+            features: yellowList
+          })
+          this.map.getSource('participantsSourceBlue').setData({
+            type: 'FeatureCollection',
+            features: blueList
           })
         }.bind(this))
 
