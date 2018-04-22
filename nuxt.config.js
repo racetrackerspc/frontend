@@ -39,5 +39,8 @@ module.exports = {
       }
     }
   },
-  plugins: []
+  plugins: [],
+  // router: {
+  //   base: '/racetrackerspc.github.io/'
+  // }
 }

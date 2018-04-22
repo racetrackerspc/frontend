@@ -99,16 +99,18 @@ export default {
 
           snapshot.forEach(function (child) {
             let participant = child.val()
+            let payload = participant.payload_fields
+            let coordinates = [payload.longitude || 0, payload.latitude || 0]
+
+            payload.name = participant.dev_id
 
             leaderboard.push({
               type: 'Feature',
               geometry: {
                 type: 'Point',
-                coordinates: participant.coordinates
+                coordinates: coordinates
               },
-              properties: {
-                name: participant.name
-              }
+              properties: payload
             })
 
             participantIndex.push(child.key)
