@@ -1,0 +1,42 @@
+{
+  "name": "racetracker",
+  "version": "1.0.0",
+  "description": "Nuxt.js project",
+  "author": "",
+  "private": true,
+  "config": {
+    "nuxt": {
+      "host": "0.0.0.0",
+      "port": "9999"
+    }
+  },
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "precommit": "npm run lint"
+  },
+  "dependencies": {
+    "@turf/along": "^6.0.0",
+    "@turf/boolean-equal": "^6.0.0",
+    "@turf/distance": "^6.0.0",
+    "@turf/helpers": "^6.0.1",
+    "@turf/length": "^6.0.0",
+    "@turf/line-slice": "^5.1.5",
+    "@turf/line-slice-along": "^5.1.5",
+    "@turf/nearest-point-on-line": "^6.0.1",
+    "firebase": "^4.6.0",
+    "lodash": "^4.17.5",
+    "mapbox-gl": "^0.44.1",
+    "nuxt": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.1",
+    "eslint": "^4.15.0",
+    "eslint-friendly-formatter": "^3.0.0",
+    "eslint-loader": "^1.7.1",
+    "eslint-plugin-vue": "^4.0.0"
+  }
+}
