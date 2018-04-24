@@ -14,7 +14,6 @@ export default {
       leaderboard: {},
       firebase: null,
       lodash: null,
-      track: null,
       turf: null,
       map: null,
     }
@@ -69,20 +68,20 @@ export default {
       })
 
       this.map.on('load', function () {
-        this.map.addSource('participantsSourceYellow', {
+        this.map.addSource('participantsSourceStatus1', {
           type: 'geojson',
           data: null
         })
 
-        this.map.addSource('participantsSourceBlue', {
+        this.map.addSource('participantsSourceStatus2', {
           type: 'geojson',
           data: null
         })
 
         this.map.addLayer({
-          id: 'participantsLayerYellow',
+          id: 'participantsLayerStatus1',
           type: 'circle',
-          source: 'participantsSourceYellow',
+          source: 'participantsSourceStatus1',
           paint: {
             'circle-radius': 5,
             'circle-color': '#ffc107'
@@ -90,9 +89,9 @@ export default {
         })
 
         this.map.addLayer({
-          id: 'participantsLayerBlue',
+          id: 'participantsLayerStatus2',
           type: 'circle',
-          source: 'participantsSourceBlue',
+          source: 'participantsSourceStatus2',
           paint: {
             'circle-radius': 5,
             'circle-color': '#03a9f4'
@@ -101,77 +100,37 @@ export default {
       }.bind(this))
     },
     setupParticipants: async function () {
-      let json = await this.fetchJSON('/track.geojson')
-      this.track = {
-        start: this.turf.helpers.point(json.features[1].geometry.coordinates),
-        line: json.features[0],
-        end: this.turf.helpers.point(json.features[2].geometry.coordinates)
-      }
-
       this.map.on('load', function () {
-        let participantsRef = this.firebase.database()
-          .ref('/participants')
-          .orderByChild('distance')
+        let participantsRef = this.firebase.database().ref('/participants_test')
 
         participantsRef.on('value', function (snapshot) {
           let participantIndex = []
           let leaderboard = {}
 
           snapshot.forEach(function (child) {
-            let participant = child.val()
-            let payload = participant.payload_fields
-            let locationOK = payload.longitude
-            let coordinates
-            let color
-
-            if (locationOK) {
-              coordinates = [payload.longitude, payload.latitude]
-              color = 'blue'
-            } else {
-              if (this.leaderboard[child.key]) {
-                coordinates = this.leaderboard[child.key].geometry.coordinates
-              } else {
-                coordinates = [null, null]
-              }
-              color = 'yellow'
-            }
-
-            leaderboard[child.key] = {
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: coordinates
-              },
-              properties: {
-                payload: payload,
-                color: color,
-                name: participant.dev_id
-              }
-            }
-
+            leaderboard[child.key] = child.val()
             participantIndex.push(child.key)
-          }.bind(this))
+          })
 
           this.participantIndex = participantIndex
           this.leaderboard = leaderboard
 
           console.log('setupParticipants', this.participantIndex)
 
-          let yellowList = this.lodash.filter(this.leaderboard, function (o) {
-            return o.properties.color === 'yellow'
+          let status1List = this.lodash.filter(this.leaderboard, function (o) {
+            return o.properties.status === 205
+          })
+          let status2List = this.lodash.filter(this.leaderboard, function (o) {
+            return o.properties.status === 204
           })
 
-          let blueList = this.lodash.filter(this.leaderboard, function (o) {
-            return o.properties.color === 'blue'
-          })
-
-          this.map.getSource('participantsSourceYellow').setData({
+          this.map.getSource('participantsSourceStatus1').setData({
             type: 'FeatureCollection',
-            features: yellowList
+            features: status1List
           })
-          this.map.getSource('participantsSourceBlue').setData({
+          this.map.getSource('participantsSourceStatus2').setData({
             type: 'FeatureCollection',
-            features: blueList
+            features: status2List
           })
         }.bind(this))
 
