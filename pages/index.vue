@@ -108,9 +108,12 @@ export default {
           let leaderboard = {}
 
           snapshot.forEach(function (child) {
-            leaderboard[child.key] = child.val()
+            let geojson = child.val()
+            leaderboard[child.key] = geojson
             participantIndex.push(child.key)
-          })
+
+            this.map.flyTo({center: geojson.geometry.coordinates})
+          }.bind(this))
 
           this.participantIndex = participantIndex
           this.leaderboard = leaderboard
