@@ -31,11 +31,8 @@ export default {
     },
     initTurf: function () {
       this.turf = {
-        booleanEqual: require('@turf/boolean-equal').default,
-        lineSlice: require('@turf/line-slice').default,
         helpers: require('@turf/helpers'),
-        length: require('@turf/length').default,
-        along: require('@turf/along').default
+        bbox: require('@turf/bbox').default
       }
     },
     initFirebase: function () {
@@ -99,13 +96,17 @@ export default {
           let leaderboard = []
 
           snapshot.forEach(function (child) {
-            let geojson = child.val()
-
-            leaderboard.push(geojson)
-            this.map.flyTo({center: geojson.geometry.coordinates})
+            leaderboard.push(child.val())
           }.bind(this))
 
+          let collection = this.turf.helpers.featureCollection(leaderboard)
+          let bbox = this.turf.bbox(collection)
+
           this.leaderboard = leaderboard
+          this.map.fitBounds(bbox, {
+            padding: { top: 100, bottom: 100, left: 100, right: 100 },
+            maxZoom: 15
+          })
 
           console.log('leaderboard', this.leaderboard.map(value =>
             value.properties.deviceId
