@@ -24,11 +24,6 @@ export default {
     this.setupParticipants()
   },
   methods: {
-    fetchJSON: async function (url) {
-      const response = await fetch(url)
-      const json = await response.json()
-      return json
-    },
     initTurf: function () {
       this.turf = {
         helpers: require('@turf/helpers'),
