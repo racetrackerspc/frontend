@@ -12,6 +12,7 @@ export default {
     return {
       leaderboard: [],
       firebase: null,
+      popup: null,
       turf: null,
       map: null
     }
@@ -83,6 +84,38 @@ export default {
           }
         })
       }.bind(this))
+
+      this.popup = new mapboxgl.Popup({
+          closeOnClick: false,
+          closeButton: false
+        })
+
+      // TODO: Get layer names from the map instance
+      let layerNames = ['participantsLayerStatus1', 'participantsLayerStatus2']
+
+      for (var name of layerNames) {
+        this.map.on('mouseenter', name, function (e) {
+          this.map.getCanvas().style.cursor = 'pointer'
+
+          let coordinates = e.features[0].geometry.coordinates.slice()
+          let description = Object.entries(e.features[0].properties)
+            .map(([key, value]) => `<li><b>${key}</b>: ${value}</li>`).join(' ')
+
+          // Ensure that if the map is zoomed out such that multiple
+          // copies of the feature are visible, the popup appears
+          // over the copy being pointed to.
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
+          }
+
+          this.popup.setLngLat(coordinates).setHTML(description).addTo(this.map)
+        }.bind(this))
+
+        this.map.on('mouseleave', name, function () {
+          this.map.getCanvas().style.cursor = ''
+          this.popup.remove()
+        }.bind(this))
+      }
     },
     setupParticipants: async function () {
       this.map.on('load', function () {
