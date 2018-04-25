@@ -35,7 +35,7 @@ module.exports = {
   ** Build configuration
   */
   build: {
-    vendor: ['lodash', 'mapbox-gl', 'firebase', '@turf/nearest-point-on-line'],
+    vendor: ['mapbox-gl', 'firebase'],
     /*
     ** Run ESLint on save
     */

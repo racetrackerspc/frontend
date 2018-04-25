@@ -10,10 +10,8 @@ export default {
   },
   data () {
     return {
-      participantIndex: [],
-      leaderboard: {},
+      leaderboard: [],
       firebase: null,
-      lodash: null,
       turf: null,
       map: null
     }
@@ -21,7 +19,6 @@ export default {
   mounted: function () {
     this.initFirebase()
     this.initMapbox()
-    this.initLodash()
     this.initTurf()
 
     this.setupParticipants()
@@ -31,9 +28,6 @@ export default {
       const response = await fetch(url)
       const json = await response.json()
       return json
-    },
-    initLodash: function () {
-      this.lodash = require('lodash')
     },
     initTurf: function () {
       this.turf = {
@@ -100,39 +94,34 @@ export default {
     },
     setupParticipants: async function () {
       this.map.on('load', function () {
-        let participantsRef = this.firebase.database().ref('/participants_test')
-
-        participantsRef.on('value', function (snapshot) {
-          let participantIndex = []
-          let leaderboard = {}
+        this.firebase.database().ref('/participants_test')
+        .on('value', function (snapshot) {
+          let leaderboard = []
 
           snapshot.forEach(function (child) {
             let geojson = child.val()
-            leaderboard[child.key] = geojson
-            participantIndex.push(child.key)
 
+            leaderboard.push(geojson)
             this.map.flyTo({center: geojson.geometry.coordinates})
           }.bind(this))
 
-          this.participantIndex = participantIndex
           this.leaderboard = leaderboard
 
-          console.log('setupParticipants', this.participantIndex)
-
-          let status1List = this.lodash.filter(this.leaderboard, function (o) {
-            return o.properties.status === 205
-          })
-          let status2List = this.lodash.filter(this.leaderboard, function (o) {
-            return o.properties.status === 204
-          })
+          console.log('leaderboard', this.leaderboard.map(value =>
+            value.properties.deviceId
+          ))
 
           this.map.getSource('participantsSourceStatus1').setData({
             type: 'FeatureCollection',
-            features: status1List
+            features: this.leaderboard.filter(participant =>
+              participant.properties.status === 205
+            )
           })
           this.map.getSource('participantsSourceStatus2').setData({
             type: 'FeatureCollection',
-            features: status2List
+            features: this.leaderboard.filter(participant =>
+              participant.properties.status === 204
+            )
           })
         }.bind(this))
 
