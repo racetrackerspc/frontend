@@ -1,4 +1,15 @@
+require('dotenv').config()
+
 module.exports = {
+  env: {
+    fbApiKey: process.env.FB_API_KEY,
+    fbAuthDomain: process.env.FB_AUTH_DOMAIN,
+    fbDatabaseUrl: process.env.FB_DATABASE_URL,
+    fbProjectId: process.env.FB_PROJECT_ID,
+    fbStorageBucket: process.env.FB_STORAGE_BUCKET,
+    fbMessagingSenderId: process.env.FB_MESSAGING_SENDER_ID,
+    mbAccessToken: process.env.MB_ACCESS_TOKEN
+  },
   /*
   ** Headers of the page
   */
@@ -39,8 +50,5 @@ module.exports = {
       }
     }
   },
-  plugins: [],
-  // router: {
-  //   base: '/racetrackerspc.github.io/'
-  // }
+  plugins: []
 }

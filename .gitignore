@@ -13,3 +13,6 @@ dist
 # Firebase
 firebase.json
 database.rules.json
+
+# Dotenv
+.env

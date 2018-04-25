@@ -27,6 +27,7 @@
     "@turf/line-slice": "^5.1.5",
     "@turf/line-slice-along": "^5.1.5",
     "@turf/nearest-point-on-line": "^6.0.1",
+    "dotenv": "^5.0.1",
     "firebase": "^4.6.0",
     "lodash": "^4.17.5",
     "mapbox-gl": "^0.44.1",

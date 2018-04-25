@@ -15,7 +15,7 @@ export default {
       firebase: null,
       lodash: null,
       turf: null,
-      map: null,
+      map: null
     }
   },
   mounted: function () {
@@ -47,24 +47,23 @@ export default {
     initFirebase: function () {
       this.firebase = require('firebase')
       let config = {
-        apiKey: 'AIzaSyAEmdvZkn0AFar0jgKumQhIDtQRPzOr2n0',
-        authDomain: 'racetracker-lpt.firebaseapp.com',
-        databaseURL: 'https://racetracker-lpt.firebaseio.com',
-        projectId: 'racetracker-lpt',
-        storageBucket: 'racetracker-lpt.appspot.com',
-        messagingSenderId: '696169792326'
+        apiKey: process.env.fbApiKey,
+        authDomain: process.env.fbAuthDomain,
+        databaseURL: process.env.fbDatabaseUrl,
+        projectId: process.env.fbProjectId,
+        storageBucket: process.env.fbStorageBucket,
+        messagingSenderId: process.env.fbMessagingSenderId
       }
-      this.firebase.initializeApp(config);
+      this.firebase.initializeApp(config)
     },
     initMapbox: function () {
       const mapboxgl = require('mapbox-gl')
-      mapboxgl.accessToken = 'pk.eyJ1IjoieWFyb3giLCJhIjoiY2o5aWVvMWRiM2R5aDJxcXlvc2FmcWhzbSJ9.-rOTs9UnhWazfkt6nwWDyg';
+      mapboxgl.accessToken = process.env.mbAccessToken
 
       this.map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/light-v9',
-        center: [-17.763852895336896, 28.684245081499952],
-        zoom: 16
+        zoom: 15
       })
 
       this.map.on('load', function () {
