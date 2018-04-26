@@ -19,15 +19,14 @@ export default {
   },
   mounted: function () {
     this.initFirebase()
-    this.initMapbox()
     this.initTurf()
-
-    this.setupParticipants()
+    this.initMapbox()
   },
   methods: {
     initTurf: function () {
       this.turf = {
         helpers: require('@turf/helpers'),
+        center: require('@turf/center').default,
         bbox: require('@turf/bbox').default
       }
     },
@@ -47,77 +46,91 @@ export default {
       const mapboxgl = require('mapbox-gl')
       mapboxgl.accessToken = process.env.mbAccessToken
 
-      this.map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/light-v9',
-        zoom: 15
-      })
+      this.firebase.database().ref('/participants_test')
+        .once('value').then(function (snapshot) {
+          let leaderboard = []
 
-      this.map.on('load', function () {
-        this.map.addSource('participantsSourceStatus1', {
-          type: 'geojson',
-          data: null
-        })
+          snapshot.forEach(function (child) {
+            leaderboard.push(child.val())
+          })
 
-        this.map.addSource('participantsSourceStatus2', {
-          type: 'geojson',
-          data: null
-        })
+          let collection = this.turf.helpers.featureCollection(leaderboard)
+          let center = this.turf.center(collection)
 
-        this.map.addLayer({
-          id: 'participantsLayerStatus1',
-          type: 'circle',
-          source: 'participantsSourceStatus1',
-          paint: {
-            'circle-radius': 5,
-            'circle-color': '#ffc107'
+          this.map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v9',
+            center: center.geometry.coordinates,
+            zoom: 15
+          })
+
+          this.map.on('load', function () {
+            this.map.addSource('participantsSourceStatus1', {
+              type: 'geojson',
+              data: null
+            })
+
+            this.map.addSource('participantsSourceStatus2', {
+              type: 'geojson',
+              data: null
+            })
+
+            this.map.addLayer({
+              id: 'participantsLayerStatus1',
+              type: 'circle',
+              source: 'participantsSourceStatus1',
+              paint: {
+                'circle-radius': 5,
+                'circle-color': '#ffc107'
+              }
+            })
+
+            this.map.addLayer({
+              id: 'participantsLayerStatus2',
+              type: 'circle',
+              source: 'participantsSourceStatus2',
+              paint: {
+                'circle-radius': 5,
+                'circle-color': '#03a9f4'
+              }
+            })
+          }.bind(this))
+
+          this.popup = new mapboxgl.Popup({
+            closeOnClick: false,
+            closeButton: false
+          })
+
+          // TODO: Get layer names dynamically
+          let layerNames = ['participantsLayerStatus1', 'participantsLayerStatus2']
+
+          for (var name of layerNames) {
+            this.map.on('mouseenter', name, function (e) {
+              this.map.getCanvas().style.cursor = 'pointer'
+
+              let coordinates = e.features[0].geometry.coordinates.slice()
+              let description = Object.entries(e.features[0].properties)
+                .map(([key, value]) => `<li><b>${key}</b>: ${value}</li>`).join(' ')
+
+              // Ensure that if the map is zoomed out such that multiple
+              // copies of the feature are visible, the popup appears
+              // over the copy being pointed to.
+              while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
+              }
+
+              this.popup.setLngLat(coordinates).setHTML(description).addTo(this.map)
+            }.bind(this))
+
+            this.map.on('mouseleave', name, function () {
+              this.map.getCanvas().style.cursor = ''
+              this.popup.remove()
+            }.bind(this))
           }
-        })
-
-        this.map.addLayer({
-          id: 'participantsLayerStatus2',
-          type: 'circle',
-          source: 'participantsSourceStatus2',
-          paint: {
-            'circle-radius': 5,
-            'circle-color': '#03a9f4'
-          }
-        })
-      }.bind(this))
-
-      this.popup = new mapboxgl.Popup({
-          closeOnClick: false,
-          closeButton: false
-        })
-
-      // TODO: Get layer names from the map instance
-      let layerNames = ['participantsLayerStatus1', 'participantsLayerStatus2']
-
-      for (var name of layerNames) {
-        this.map.on('mouseenter', name, function (e) {
-          this.map.getCanvas().style.cursor = 'pointer'
-
-          let coordinates = e.features[0].geometry.coordinates.slice()
-          let description = Object.entries(e.features[0].properties)
-            .map(([key, value]) => `<li><b>${key}</b>: ${value}</li>`).join(' ')
-
-          // Ensure that if the map is zoomed out such that multiple
-          // copies of the feature are visible, the popup appears
-          // over the copy being pointed to.
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
-          }
-
-          this.popup.setLngLat(coordinates).setHTML(description).addTo(this.map)
+          this.setupParticipants()
         }.bind(this))
-
-        this.map.on('mouseleave', name, function () {
-          this.map.getCanvas().style.cursor = ''
-          this.popup.remove()
-        }.bind(this))
-      }
     },
-    setupParticipants: async function () {
+    setupParticipants: function () {
       this.map.on('load', function () {
         this.firebase.database().ref('/participants_test')
         .on('value', function (snapshot) {
@@ -125,7 +138,7 @@ export default {
 
           snapshot.forEach(function (child) {
             leaderboard.push(child.val())
-          }.bind(this))
+          })
 
           let collection = this.turf.helpers.featureCollection(leaderboard)
           let bbox = this.turf.bbox(collection)
