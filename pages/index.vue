@@ -156,7 +156,7 @@ export default {
           this.map.getSource('participantsSourceStatus1').setData({
             type: 'FeatureCollection',
             features: this.leaderboard.filter(participant =>
-              participant.properties.status === 205
+              (participant.properties.status === 205) || (participant.properties.status === 207)
             )
           })
           this.map.getSource('participantsSourceStatus2').setData({
