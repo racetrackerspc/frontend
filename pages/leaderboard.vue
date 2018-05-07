@@ -5,7 +5,8 @@
       <nav class="panel">
         <p class="panel-heading is-radiusless has-text-centered">LEADERBOARD</p>
       </nav>
-      <div v-for="(participant, index) in leaderboard" :key=index class="card">
+      <div v-for="(participant, index) in leaderboard" :key=index class="card"
+        @mouseover="highlightParticipant(index)" @mouseleave="discardParticipant(index)">
         <div class="card-content">
           <nav class="level is-marginless">
             <div class="level-left">
@@ -142,6 +143,11 @@ export default {
             data: null
           })
 
+          this.map.addSource('selectedParticipantSource', {
+            type: 'geojson',
+            data: null
+          })
+
           this.map.addLayer({
             id: 'trackLayer',
             type:'line',
@@ -174,6 +180,16 @@ export default {
             paint: {
                 'circle-radius': 7,
                 'circle-color': '#f44336'
+            }
+          })
+
+          this.map.addLayer({
+            id: 'selectedParticipantLayer',
+            type: 'circle',
+            source: 'selectedParticipantSource',
+            paint: {
+              'circle-radius': 8,
+              'circle-color': '#9c27b0'
             }
           })
 
@@ -254,6 +270,18 @@ export default {
     },
     calculateDistanceFromLeader: function (participant, leaderRunningDistance) {
       return (participant.properties.location - leaderRunningDistance) * 1000
+    },
+    highlightParticipant: function (index) {
+      this.map.getSource('selectedParticipantSource').setData({
+        type: 'FeatureCollection',
+        features: [this.leaderboard[index]]
+      })
+    },
+    discardParticipant: function (index) {
+      this.map.getSource('selectedParticipantSource').setData({
+        type: 'FeatureCollection',
+        features: []
+      })
     }
   }
 }
