@@ -6,6 +6,7 @@
         <p class="panel-heading is-radiusless has-text-centered">LEADERBOARD</p>
       </nav>
       <div v-for="(participant, index) in leaderboard" :key=index class="card"
+        v-bind:class="{ 'has-background-light': selectedCard === index }"
         @mouseover="highlightParticipant(index)" @mouseleave="discardParticipant(index)">
         <div class="card-content">
           <nav class="level is-marginless">
@@ -39,6 +40,7 @@
 export default {
   data () {
     return {
+      selectedCard: null,
       leaderboard: [],
       firebase: null,
       mapboxgl: null,
@@ -272,12 +274,14 @@ export default {
       return (participant.properties.location - leaderRunningDistance) * 1000
     },
     highlightParticipant: function (index) {
+      this.selectedCard = index
       this.map.getSource('selectedParticipantSource').setData({
         type: 'FeatureCollection',
         features: [this.leaderboard[index]]
       })
     },
     discardParticipant: function (index) {
+      this.selectedCard = null
       this.map.getSource('selectedParticipantSource').setData({
         type: 'FeatureCollection',
         features: []
@@ -313,6 +317,10 @@ body {
 
 .mb-025 {
   margin-bottom: 0.25rem;
+}
+
+.has-background-light {
+  background-color: hsl(0, 0%, 96%)
 }
 
 #map {
