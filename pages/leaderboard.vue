@@ -212,6 +212,7 @@ export default {
         })
 
         this.map.on('mouseenter', 'leaderboardLayer', e => {
+          this.selectedCard = e.features[0].properties.index
           this.map.getCanvas().style.cursor = 'pointer'
 
           let coordinates = e.features[0].geometry.coordinates.slice()
@@ -230,6 +231,7 @@ export default {
         })
 
         this.map.on('mouseleave', 'leaderboardLayer', () => {
+          this.selectedCard = null
           this.map.getCanvas().style.cursor = ''
           popup.remove()
         })
@@ -254,6 +256,7 @@ export default {
               leaderRunningDistance = participant.properties.location
             }
 
+            participant.properties.index = i
             participant.properties.distFromLeader =
               this.calculateDistanceFromLeader(participant, leaderRunningDistance)
 
