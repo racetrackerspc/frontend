@@ -1,5 +1,37 @@
 <template>
-  <div id="map"></div>
+  <div class="columns is-gapless map-container">
+    <div class="column is-one-quarter">
+
+      <nav class="panel">
+        <p class="panel-heading is-radiusless has-text-centered">LEADERBOARD</p>
+      </nav>
+      <div v-for="(participant, index) in leaderboard" :key=index class="card">
+        <div class="card-content">
+          <nav class="level is-marginless">
+            <div class="level-left">
+              <p class="title is-7 mb-025">{{ participant.properties.deviceId }}</p>
+            </div>
+            <div class="level-right">
+              <p class="subtitle is-7">#{{ index + 1 }}</p>
+            </div>
+          </nav>
+          <div class="content is-small">
+
+            <p v-if="index === 0" class="is-marginless">In the lead</p>
+            <p v-else class="is-marginless">
+              {{ participant.properties.distFromLeader | toFixed(0) }}m behind leader
+            </p>
+
+            <p class="is-marginless">
+              {{ -participant.properties.location | toFixed(2) }}km total
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div id="map" class="column"></div>
+  </div>
 </template>
 
 <script>
@@ -21,6 +53,11 @@ export default {
     this.initMapbox()
 
     this.setupMap().then(() => this.setupParticipants())
+  },
+  filters: {
+    toFixed (value, places) {
+      return value.toFixed(places)
+    }
   },
   methods: {
     initAxios: function () {
@@ -161,7 +198,7 @@ export default {
 
           let coordinates = e.features[0].geometry.coordinates.slice()
           let description = Object.entries(e.features[0].properties)
-                            .map(([key, value]) => `<li><b>${key}</b>: ${value}</li>`)
+                            .map(([key, value]) => `<li class="is-size-7"><b>${key}</b>: ${value}</li>`)
                             .join(' ')
 
           // Ensure that if the map is zoomed out such that multiple
@@ -189,9 +226,23 @@ export default {
         leaderboardRef.on('value', snapshot => {
           this.leaderboard = []
 
+          let leaderRunningDistance
+          let i = 0
+
           snapshot.forEach(child => {
-            console.log(child.key, child.val().properties.location)
-            this.leaderboard.push(child.val())
+            let participant = child.val()
+
+            if (i === 0) {
+              leaderRunningDistance = participant.properties.location
+            }
+
+            participant.properties.distFromLeader =
+              this.calculateDistanceFromLeader(participant, leaderRunningDistance)
+
+            this.leaderboard.push(participant)
+            i++
+
+            console.log(child.key, participant.properties.distFromLeader)
           })
 
           this.map.getSource('leaderboardSource').setData({
@@ -200,6 +251,9 @@ export default {
           })
         })
       })
+    },
+    calculateDistanceFromLeader: function (participant, leaderRunningDistance) {
+      return (participant.properties.location - leaderRunningDistance) * 1000
     }
   }
 }
@@ -211,10 +265,30 @@ body {
   margin: 0;
 }
 
-#map {
+.card {
+  margin: 0.5rem;
+}
+.card-content {
+  padding: 0.75rem;
+}
+
+.panel {
+  margin-bottom: 0.5rem !important;
+}
+
+.map-container {
   position: absolute;
-  bottom: 0;
   width: 100%;
+  height: 100%;
   top: 0;
+}
+
+.mb-025 {
+  margin-bottom: 0.25rem;
+}
+
+#map {
+  position: relative;
+  padding: 0;
 }
 </style>
