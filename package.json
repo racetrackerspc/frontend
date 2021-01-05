@@ -23,7 +23,7 @@
     "@turf/bbox": "^6.0.1",
     "@turf/center": "^6.0.1",
     "@turf/helpers": "^6.0.1",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "dotenv": "^5.0.1",
     "firebase": "^4.6.0",
     "mapbox-gl": "^0.44.1",
